@@ -1,0 +1,25 @@
+{
+  "name": "arex-record-sdk",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist-sdk/arex-record-sdk.umd.js",
+  "module": "dist-sdk/arex-record-sdk.es.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:demo": "tsc && vite build --mode=demo && node copy-file.js",
+    "preview": "vite preview --outDir dist-demo"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "rrweb": "2.0.0-alpha.4"
+  },
+  "engines": {
+    "node": ">=19.0.0"
+  }
+}

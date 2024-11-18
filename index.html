@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      (function (w, d, c) {
+        var s = document.createElement("script");
+        s.src = c;
+        s.onload = function () {
+          // new w.AREX_RECORD_SDK({appId: 'MALL-81', tenantCode: 'trip',}) // 最简单的使用方式
+          const skd = new w.AREX_RECORD_SDK({
+            appId: "MALL-81",
+            tenantCode: "trip",
+            timeout: 1000, // 上报周期时间，默认5s
+            manual: true,
+            // 其他 rrweb record 配置项 https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
+            maskAllInputs: true,
+          });
+          const { stop } = skd.record();
+
+          setTimeout(() => {
+            stop();
+            console.log("stop record");
+          }, 10000);
+        };
+        d.body.appendChild(s);
+      })(
+        window,
+        document,
+        "http://localhost:4173/arex-record-sdk.umd.js",
+      );
+    </script>
+  </body>
+</html>
