@@ -1,10 +1,10 @@
 {
-  "name": "arex-record-sdk",
+  "name": "@arextest/arex-record-sdk",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "dist-sdk/arex-record-sdk.umd.js",
-  "module": "dist-sdk/arex-record-sdk.es.js",
+  "main": "dist/arex-record-sdk.umd.js",
+  "module": "dist/arex-record-sdk.es.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
