@@ -30,10 +30,10 @@ import { setupCounter } from './counter';
 //   }
 // });
 
-setTimeout(() => {
-  stop();
-  console.log('stop record');
-}, 10000);
+// setTimeout(() => {
+//   stop();
+//   console.log('stop record');
+// }, 10000);
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
