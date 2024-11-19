@@ -1,7 +1,8 @@
 {
   "name": "@arextest/arex-record-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
+  "homepage": "https://github.com/arextest/arex-record-sdk",
   "main": "dist/arex-record-sdk.umd.js",
   "module": "dist/arex-record-sdk.es.js",
   "files": [
@@ -28,7 +29,6 @@
     "vite": "^5.4.10"
   },
   "dependencies": {
-    "@arextest/arex-record-sdk": "^0.0.1",
     "rrweb": "2.0.0-alpha.4"
   },
   "engines": {

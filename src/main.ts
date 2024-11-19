@@ -3,7 +3,6 @@ import typescriptLogo from './typescript.svg';
 import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
 // import ArexRecordSdk from './lib/sdk';
-// import  ArexRecordSdk  from '@arextest/arex-record-sdk';
 
 // 基础使用方式
 // new ArexRecordSdk({
@@ -22,12 +21,19 @@ import { setupCounter } from './counter';
 //   // 其他 rrweb record 配置项 https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
 //   maskAllInputs: true
 // });
-// const { stop } = skd.record();
+//
+// const { stop } = skd.record({
+//   tags: {
+//     ext: {
+//       test: 'test'
+//     }
+//   }
+// });
 
-// setTimeout(() => {
-//   stop();
-//   console.log('stop record');
-// }, 10000);
+setTimeout(() => {
+  stop();
+  console.log('stop record');
+}, 10000);
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>

@@ -9,9 +9,11 @@ npm install @arextest/arex-record-sdk
 ```
 
 #### Basic Usage
+
 ##### CDN
+
 ```html
- <script>
+<script>
   (function (w, d, c) {
     var s = document.createElement('script');
     s.src = c;
@@ -28,6 +30,7 @@ npm install @arextest/arex-record-sdk
 ```
 
 ##### npm
+
 ```javascript
 import ArexRecordSdk from '@arextest/arex-record-sdk';
 
@@ -49,9 +52,22 @@ const skd = new ArexRecordSdk({
   serverUrl: '<serverUrl>',
   timeout: 1000, // interval time for sending data to server, default 5000ms
   manual: true, // manual control record start and stop
-  // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options   
+  tags: {
+    userId: '<userId>',
+    clientId: '<clientId>',
+    mobileNo: '<mobileNo>'
+  },
+  // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
   maskAllInputs: true
 });
+
+// set extra tags, also can be set in skd.record method
+skd.setTags({
+  ext: {
+      extKey: 'extValue'
+  }
+});
+
 const { stop } = skd.record();
 
 // stop record after 10s
@@ -69,4 +85,5 @@ pnpm run dev
 pnpm run build # build sdk
 pnpm run build:demo # build demo project
 pnpm run build:dem-cdn # build demo project for cdn usage
+pnpm run preview # preview demo project
 ```

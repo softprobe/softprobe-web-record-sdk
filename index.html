@@ -30,7 +30,15 @@
             // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
             maskAllInputs: true
           });
-          const { stop } = skd.record();
+
+          const { stop } = skd.record({
+            tags: {
+              ext: {
+                manual: true,
+                method: 'cdn'
+              }
+            }
+          });
 
           // stop record after 10s
           setTimeout(() => {
