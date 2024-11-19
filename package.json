@@ -1,24 +1,34 @@
 {
   "name": "@arextest/arex-record-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "dist/arex-record-sdk.umd.js",
   "module": "dist/arex-record-sdk.es.js",
   "files": [
-    "dist"
+    "dist/**/**",
+    "docs/**/**",
+    "!**/*.spec.*",
+    "!**/*.json",
+    "!**/*.tsbuildinfo",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:demo": "tsc && vite build --mode=demo && node copy-file.js",
-    "preview": "vite preview --outDir dist-demo"
+    "build": "vite build && tsc  --build tsconfig.sdk.json",
+    "build:demo": "vite build --mode=demo && tsc",
+    "build:demo-cdn": "pnpm run build:demo && node copy-file.js",
+    "preview": "vite preview --mode=demo",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "typescript": "~5.6.2",
+    "prettier": "^3.3.3",
     "vite": "^5.4.10"
   },
   "dependencies": {
+    "@arextest/arex-record-sdk": "^0.0.1",
     "rrweb": "2.0.0-alpha.4"
   },
   "engines": {

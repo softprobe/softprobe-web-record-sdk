@@ -11,31 +11,35 @@
     <script type="module" src="/src/main.ts"></script>
     <script>
       (function (w, d, c) {
-        var s = document.createElement("script");
+        var s = document.createElement('script');
         s.src = c;
         s.onload = function () {
-          // new w.AREX_RECORD_SDK({appId: 'MALL-81', tenantCode: 'trip',}) // 最简单的使用方式
-          const skd = new w.AREX_RECORD_SDK({
-            appId: "MALL-81",
-            tenantCode: "trip",
-            timeout: 1000, // 上报周期时间，默认5s
-            manual: true,
-            // 其他 rrweb record 配置项 https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
-            maskAllInputs: true,
+          // Basic Usage
+          // new w.AREX_RECORD_SDK({
+          //   appId: 'MALL-81',
+          //   tenantCode: 'trip',
+          //   serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record'
+          // });
+          // Advanced Usage
+          const skd = new AREX_RECORD_SDK({
+            appId: 'MALL-81',
+            tenantCode: 'trip',
+            serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record',
+            timeout: 1000, // interval time for sending data to server, default 5000ms
+            manual: true, // manual control record start and stop
+            // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
+            maskAllInputs: true
           });
           const { stop } = skd.record();
 
+          // stop record after 10s
           setTimeout(() => {
             stop();
-            console.log("stop record");
+            console.log('stop record');
           }, 10000);
         };
         d.body.appendChild(s);
-      })(
-        window,
-        document,
-        "http://localhost:4173/arex-record-sdk.umd.js",
-      );
+      })(window, document, 'http://localhost:4173/arex-record-sdk.umd.js');
     </script>
   </body>
 </html>

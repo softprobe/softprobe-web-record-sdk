@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@arextest/arex-record-sdk':
+        specifier: ^0.0.1
+        version: 0.0.1
+      prettier:
+        specifier: ^3.3.3
+        version: 3.3.3
       rrweb:
         specifier: 2.0.0-alpha.4
         version: 2.0.0-alpha.4
@@ -23,6 +29,10 @@ importers:
         version: 5.4.11(@types/node@22.9.0)
 
 packages:
+
+  '@arextest/arex-record-sdk@0.0.1':
+    resolution: {integrity: sha512-JQbC+GkB+tpoxo9I/JkRKrL9q6wfq+Vx9A5vV19d3RQR0j3XZqzUUEa4R129IaSnEiOO2W27dfEHZ2lVC/hwvQ==}
+    engines: {node: '>=19.0.0'}
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -299,6 +309,11 @@ packages:
     resolution: {integrity: sha512-OCVPnIObs4N29kxTjzLfUryOkvZEq+pf8jTF0lg8E7uETuWHA+v7j3c/xJmiqpX450191LlmZfUKkXxkTry7nA==}
     engines: {node: ^10 || ^12 || >=14}
 
+  prettier@3.3.3:
+    resolution: {integrity: sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   rollup@4.27.2:
     resolution: {integrity: sha512-KreA+PzWmk2yaFmZVwe6GB2uBD86nXl86OsDkt1bJS9p3vqWuEQ6HnJJ+j/mZi/q0920P99/MVRlB4L3crpF5w==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -360,6 +375,10 @@ packages:
         optional: true
 
 snapshots:
+
+  '@arextest/arex-record-sdk@0.0.1':
+    dependencies:
+      rrweb: 2.0.0-alpha.4
 
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
@@ -542,6 +561,8 @@ snapshots:
       nanoid: 3.3.7
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  prettier@3.3.3: {}
 
   rollup@4.27.2:
     dependencies:

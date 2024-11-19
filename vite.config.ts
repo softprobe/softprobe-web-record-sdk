@@ -1,27 +1,24 @@
-import { defineConfig } from "vite";
+import { defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
-  console.log("mode", mode);
-  if (mode === "demo")
+  console.log('⚙️Build Mode: ', mode);
+  if (mode === 'demo')
     return {
       build: {
         emptyOutDir: true,
-        outDir: "dist-demo",
-      },
+        outDir: 'dist-demo'
+      }
     };
 
   return {
     build: {
       copyPublicDir: false,
       lib: {
-        entry: new URL(import.meta.url).pathname.replace(
-          "vite.config.ts",
-          "src/lib/sdk.ts",
-        ), // 入口文件
+        entry: 'src/lib/sdk.ts', // 入口文件
         emptyOutDir: true,
-        name: "arex-record-sdk", // 导出的库名称
+        name: 'arex-record-sdk', // 导出的库名称
         fileName: (format) => `arex-record-sdk.${format}.js`, // 输出文件名
-        formats: ["es", "umd"], // 输出格式
+        formats: ['es', 'umd'] // 输出格式
       },
       rollupOptions: {
         output: {
@@ -32,8 +29,8 @@ export default defineConfig(({ mode }) => {
           //             rrweb: 'rrweb', // UMD 格式下的全局变量名
           //         },
           //     },
-        },
-      },
-    },
+        }
+      }
+    }
   };
 });

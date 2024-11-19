@@ -1,15 +1,15 @@
-import { record as rrwebRecord } from "rrweb";
-import { recordOptions } from "rrweb/typings/types";
+import { record as rrwebRecord } from 'rrweb';
+import { recordOptions } from 'rrweb/typings/types';
 
-export interface AREX_RECORD_SDK_OPTIONS extends recordOptions<any> {
+export interface ArexRecordSdkOptions extends recordOptions<any> {
   appId: string;
   tenantCode: string;
-  serverUrl?: string;
+  serverUrl: string;
   timeout?: number;
   manual?: boolean;
 }
 
-export default class AREX_RECORD_SDK {
+export default class ArexRecordSdk {
   private events: any[] = [];
   private readonly appId: string;
   private readonly tenantCode: string;
@@ -18,15 +18,16 @@ export default class AREX_RECORD_SDK {
   private readonly timeout: number;
   private readonly recordOptions: recordOptions<any>;
 
-  constructor(options: AREX_RECORD_SDK_OPTIONS) {
+  constructor(options: ArexRecordSdkOptions) {
     const {
       appId,
       tenantCode,
-      serverUrl = "http://arex-storage.fat3.tripqate.com/api/rr/record",
+      serverUrl,
       timeout = 5000,
       manual = false,
       ...recordOptions
     } = options;
+
     this.appId = appId;
     this.tenantCode = tenantCode;
     this.recordId = this.uuid();
@@ -46,7 +47,7 @@ export default class AREX_RECORD_SDK {
       emit: (event) => {
         this.events.push(event);
       },
-      ...this.recordOptions,
+      ...this.recordOptions
     });
 
     const timer = setInterval(() => this.save(), this.timeout);
@@ -56,7 +57,7 @@ export default class AREX_RECORD_SDK {
         clearInterval(timer);
         stopFn?.();
         this.save();
-      },
+      }
     };
   }
 
@@ -66,26 +67,26 @@ export default class AREX_RECORD_SDK {
     const body = JSON.stringify({
       appId: this.appId,
       events: this.events,
-      recordId: this.recordId,
+      recordId: this.recordId
     });
 
     this.events = [];
     fetch(this.serverUrl, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Arex-Tenant-Code": this.tenantCode,
+        'Content-Type': 'application/json',
+        'Arex-Tenant-Code': this.tenantCode
       },
-      body,
+      body
     });
   }
 
   private uuid() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
       (
         +c ^
         (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
-      ).toString(16),
+      ).toString(16)
     );
   }
 
@@ -95,16 +96,16 @@ export default class AREX_RECORD_SDK {
         // @ts-ignore
         open.apply(this, arguments);
         // @ts-ignore
-        this.setRequestHeader("arex-fe-record-id", this.recordId);
+        this.setRequestHeader('arex-fe-record-id', this.recordId);
         // @ts-ignore
-        this.setRequestHeader("arex-fe-app-id", this.appId);
+        this.setRequestHeader('arex-fe-app-id', this.appId);
         // @ts-ignore
-        this.setRequestHeader("arex-force-record", "true");
+        this.setRequestHeader('arex-force-record', 'true');
       };
     })(XMLHttpRequest.prototype.open);
 
-    console.log("RR-Record Session: " + this.recordId);
+    console.log('RR-Record Session: ' + this.recordId);
   }
 }
 
-window.AREX_RECORD_SDK = AREX_RECORD_SDK;
+(window as any).AREX_RECORD_SDK = ArexRecordSdk;
