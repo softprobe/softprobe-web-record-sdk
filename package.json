@@ -1,8 +1,7 @@
 {
   "name": "@arextest/arex-record-sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
-  "homepage": "https://github.com/arextest/arex-record-sdk",
   "main": "dist/arex-record-sdk.umd.js",
   "module": "dist/arex-record-sdk.es.js",
   "files": [
@@ -18,7 +17,7 @@
     "dev": "vite",
     "build": "vite build && tsc  --build tsconfig.sdk.json",
     "build:demo": "vite build --mode=demo && tsc",
-    "build:demo-cdn": "pnpm run build:demo && node copy-file.js",
+    "build:demo-cdn": "pnpm run build && pnpm run build:demo && node copy-file.js",
     "preview": "vite preview --mode=demo",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
@@ -30,8 +29,5 @@
   },
   "dependencies": {
     "rrweb": "2.0.0-alpha.4"
-  },
-  "engines": {
-    "node": ">=19.0.0"
   }
 }

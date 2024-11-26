@@ -16,7 +16,7 @@ import { setupCounter } from './counter';
 //   appId: 'MALL-81',
 //   tenantCode: 'trip',
 //   serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record',
-//   timeout: 1000, // 上报周期时间，默认5000ms
+//   interval: 1000, // 上报周期时间，默认5000ms
 //   manual: true, // 手动控制录制，默认false
 //   // 其他 rrweb record 配置项 https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
 //   maskAllInputs: true

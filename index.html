@@ -18,14 +18,14 @@
           // new w.AREX_RECORD_SDK({
           //   appId: 'MALL-81',
           //   tenantCode: 'trip',
-          //   serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record'
+          //   serverUrl: '//arex-storage.fat3.tripqate.com/api/rr/record'
           // });
           // Advanced Usage
           const skd = new w.AREX_RECORD_SDK({
             appId: 'MALL-81',
             tenantCode: 'trip',
-            serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record',
-            timeout: 1000, // interval time for sending data to server, default 5000ms
+            serverUrl: '//arex-storage.fat3.tripqate.com/api/rr/record',
+            interval: 10000, // interval time for sending data to server, default 5000ms
             manual: true, // manual control record start and stop
             // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
             maskAllInputs: true

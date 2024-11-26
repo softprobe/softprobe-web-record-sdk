@@ -17,7 +17,7 @@ export interface ArexRecordSdkOptions extends ArexManualRecordSdkOptions {
   appId: string;
   tenantCode: string;
   serverUrl: string;
-  timeout?: number;
+  interval?: number;
   manual?: boolean;
 }
 
@@ -27,7 +27,7 @@ export default class ArexRecordSdk {
   private readonly tenantCode: string;
   private readonly recordId: string;
   private readonly serverUrl: string;
-  private readonly timeout: number;
+  private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
 
@@ -35,8 +35,8 @@ export default class ArexRecordSdk {
     const {
       appId,
       tenantCode,
-      serverUrl,
-      timeout = 5000,
+      serverUrl = '//storage.arextest.com/api/rr/record',
+      interval = 5000,
       manual = false,
       tags = {},
       ...recordOptions
@@ -45,8 +45,10 @@ export default class ArexRecordSdk {
     this.appId = appId;
     this.tenantCode = tenantCode;
     this.recordId = this.uuid();
-    this.serverUrl = serverUrl;
-    this.timeout = timeout;
+    this.serverUrl = serverUrl.startsWith('//')
+      ? `${window.location.protocol}${serverUrl}`
+      : serverUrl;
+    this.interval = Math.max(interval, 5000);
     this.tags = tags;
     this.recordOptions = recordOptions;
 
@@ -73,7 +75,7 @@ export default class ArexRecordSdk {
         this.save({
           tags
         }),
-      this.timeout
+      this.interval
     );
 
     return {
