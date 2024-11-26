@@ -2,6 +2,9 @@ import { record as rrwebRecord } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { mergeTags } from './utils';
 
+const MAX_EVENTS = 500; // 设置最大事件数量
+const MAX_RETRY = 3; // 设置最大重试次数
+
 export type Tags = {
   userId?: string;
   clientId?: string;
@@ -61,30 +64,37 @@ export default class ArexRecordSdk {
 
   record(recordOptions?: ArexManualRecordSdkOptions) {
     const { tags = {}, ...options } = recordOptions || {};
+    let isSaving = false;
+
+    const emitEvent: recordOptions<any>['emit'] = (event) => {
+      if (this.events.length >= MAX_EVENTS) {
+        this.events.shift(); // remove the oldest event
+      }
+      this.events.push(event);
+    };
 
     const stopFn = rrwebRecord({
-      emit: (event) => {
-        this.events.push(event);
-      },
+      emit: emitEvent,
       ...this.recordOptions,
       ...options
     });
 
-    const timer = setInterval(
-      () =>
-        this.save({
-          tags
-        }),
-      this.interval
-    );
+    const reportEvents = () => {
+      if (this.events.length > 0 && !isSaving) {
+        isSaving = true;
+        this.save({ tags }).finally(() => {
+          isSaving = false;
+        });
+      }
+    };
+
+    const intervalId = setInterval(reportEvents, this.interval);
 
     return {
       stop: () => {
-        clearInterval(timer);
+        clearInterval(intervalId);
         stopFn?.();
-        this.save({
-          tags
-        });
+        reportEvents();
       }
     };
   }
@@ -93,7 +103,7 @@ export default class ArexRecordSdk {
     this.tags = override ? tags : { ...this.tags, ...tags };
   }
 
-  private save(params?: { tags?: Tags }) {
+  private async save(params?: { tags?: Tags }) {
     if (this.events.length === 0) return;
 
     const body = JSON.stringify({
@@ -103,18 +113,41 @@ export default class ArexRecordSdk {
       ...mergeTags(this.tags, params?.tags)
     });
 
-    console.log({ tags: mergeTags(this.tags, params?.tags) });
+    let attempts = 0;
 
-    this.events = [];
+    while (attempts < MAX_RETRY) {
+      try {
+        const fetchRes = await fetch(this.serverUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Arex-Tenant-Code': this.tenantCode
+          },
+          body
+        });
 
-    fetch(this.serverUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Arex-Tenant-Code': this.tenantCode
-      },
-      body
-    });
+        if (!fetchRes.ok) {
+          throw new Error(`HTTP error! Status: ${fetchRes.status}`);
+        }
+
+        const fetchData = await fetchRes.json();
+
+        if (fetchData.body === true) {
+          this.events = []; // Clear events on successful save
+          return; // Exit after successful save
+        } else {
+          throw new Error('Failed to save record');
+        }
+      } catch (e) {
+        console.error(e);
+        attempts++;
+        if (attempts === MAX_RETRY) {
+          console.error(
+            'Max retries reached. Events will be retained for next attempt.'
+          );
+        }
+      }
+    }
   }
 
   private uuid() {

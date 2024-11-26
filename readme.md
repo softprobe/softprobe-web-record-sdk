@@ -19,6 +19,7 @@ npm install @arextest/arex-record-sdk
     s.src = c;
     s.onload = function () {
       new w.AREX_RECORD_SDK({
+        appId: '<appId>',
         tenantCode: '<tenantCode>',
       });
     };
@@ -32,7 +33,10 @@ npm install @arextest/arex-record-sdk
 ```javascript
 import ArexRecordSdk from '@arextest/arex-record-sdk';
 
-new ArexRecordSdk({ tenantCode: '<tenantCode>' });
+new ArexRecordSdk({
+    appId: '<appId>',
+    tenantCode: '<tenantCode>'
+});
 ```
 
 #### Advanced Usage
@@ -44,14 +48,13 @@ const skd = new ArexRecordSdk({
   appId: '<appId>',
   tenantCode: '<tenantCode>',
   serverUrl: '<serverUrl>',
-  timeout: 10000, // interval time for sending data to server, default 5000ms
-  manual: true, // manual control record start and stop
+  timeout: 10000,
+  manual: true, 
   tags: {
     userId: '<userId>',
     clientId: '<clientId>',
     mobileNo: '<mobileNo>'
   },
-  // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
   maskAllInputs: true
 });
 
@@ -74,9 +77,9 @@ setTimeout(() => {
 #### Sdk Options
 
 | key                      | default            | description                                                  |
-| ------------------------ | ------------------ | ------------------------------------------------------------ |
+| ------------------------ |--------------------| ------------------------------------------------------------ |
 | tenantCode               | required           | The code of tenant                                           |
-| appId                    | -                  | A unique id used to identify the application                 |
+| appId                    | required           | A unique id used to identify the application                 |
 | interval                 | 5000               | Interval time for sending data to server. The minimum value is 5000 |
 | manual                   | false              | Manual control record start and stop                         |
 | tags                     | {}                 | A range of additional custom tags                            |

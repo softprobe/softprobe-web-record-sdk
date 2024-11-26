@@ -1,6 +1,6 @@
 {
-  "name": "@arextest/arex-record-sdk",
-  "version": "0.0.4",
+  "name": "@arextest/web-record-sdk",
+  "version": "0.0.5",
   "type": "module",
   "main": "dist/arex-record-sdk.umd.js",
   "module": "dist/arex-record-sdk.es.js",
