@@ -14,21 +14,14 @@ export default defineConfig(({ mode }) => {
     build: {
       copyPublicDir: false,
       lib: {
-        entry: 'src/lib/sdk.ts', // 入口文件
+        entry: 'src/lib/sdk.ts', 
         emptyOutDir: true,
-        name: 'arex-record-sdk', // 导出的库名称
-        fileName: (format) => `arex-record-sdk.${format}.js`, // 输出文件名
-        formats: ['es', 'umd'] // 输出格式
+        name: 'softprobe-web-record-sdk', 
+        fileName: (format) => `softprobe-web-record-sdk.${format}.js`, 
+        formats: ['es', 'umd'] 
       },
       rollupOptions: {
         output: {
-          // 确保外部化处理那些你不想打包进库的依赖
-          //     external: ['rrweb'], // 外部依赖
-          //     output: {
-          //         globals: {
-          //             rrweb: 'rrweb', // UMD 格式下的全局变量名
-          //         },
-          //     },
         }
       }
     }

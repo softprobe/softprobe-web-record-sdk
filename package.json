@@ -1,9 +1,16 @@
 {
-  "name": "@arextest/web-record-sdk",
+  "name": "@softprobe/softprobe-web-record-sdk",
   "version": "0.0.5",
   "type": "module",
-  "main": "dist/arex-record-sdk.umd.js",
-  "module": "dist/arex-record-sdk.es.js",
+  "main": "dist/softprobe-web-record-sdk.umd.js",
+  "module": "dist/softprobe-web-record-sdk.es.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/softprobe/softprobe-web-record-sdk.git"
+  },
   "files": [
     "dist/**/**",
     "docs/**/**",

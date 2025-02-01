@@ -2,39 +2,17 @@ import './style.css';
 import typescriptLogo from './typescript.svg';
 import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
-// import ArexRecordSdk from './lib/sdk';
+import RecordSdk from './lib/sdk';
 
-// 基础使用方式
-// new ArexRecordSdk({
-//   appId: 'MALL-81',
-//   tenantCode: 'trip',
-//   serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record'
-// });
-
-// 进阶使用方式
-// const skd = new ArexRecordSdk({
-//   appId: 'MALL-81',
-//   tenantCode: 'trip',
-//   serverUrl: 'http://arex-storage.fat3.tripqate.com/api/rr/record',
-//   interval: 1000, // 上报周期时间，默认5000ms
-//   manual: true, // 手动控制录制，默认false
-//   // 其他 rrweb record 配置项 https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
-//   maskAllInputs: true
-// });
-//
-// const { stop } = skd.record({
-//   tags: {
-//     ext: {
-//       test: 'test'
-//     }
-//   }
-// });
-
-// setTimeout(() => {
-//   stop();
-//   console.log('stop record');
-// }, 10000);
-
+new RecordSdk({
+  authToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjEyMzQ1Njc4OTAiLCJ0ZW5hbnQiOiJqb24iLCJpYXQiOjE1MTYyMzkwMjJ9.yp61mnebnorgEP3NU34E1mbFNSEqAVFgF2GVWtEk51g',
+  tags: {
+    userId: '1234567890',
+    clientId: '1234567890',
+    email: 'test@test.com',
+    phoneNo: '1234567890',
+  }
+});
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">

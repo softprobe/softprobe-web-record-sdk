@@ -14,17 +14,8 @@
         var s = document.createElement('script');
         s.src = c;
         s.onload = function () {
-          // Basic Usage
-          // new w.AREX_RECORD_SDK({
-          //   appId: 'MALL-81',
-          //   tenantCode: 'trip',
-          //   serverUrl: '//arex-storage.fat3.tripqate.com/api/rr/record'
-          // });
-          // Advanced Usage
-          const skd = new w.AREX_RECORD_SDK({
-            appId: 'MALL-81',
-            tenantCode: 'trip',
-            serverUrl: '//arex-storage.fat3.tripqate.com/api/rr/record',
+          const skd = new w.SOFTPROBE_RECORD_SDK({
+            authToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjEyMzQ1Njc4OTAiLCJ0ZW5hbnQiOiJqb24iLCJpYXQiOjE1MTYyMzkwMjJ9.yp61mnebnorgEP3NU34E1mbFNSEqAVFgF2GVWtEk51g',
             interval: 10000, // interval time for sending data to server, default 5000ms
             manual: true, // manual control record start and stop
             // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
@@ -44,10 +35,10 @@
           setTimeout(() => {
             stop();
             console.log('stop record');
-          }, 10000);
+          }, 60000);
         };
         d.body.appendChild(s);
-      })(window, document, 'http://localhost:4173/arex-record-sdk.umd.js');
+      })(window, document, 'http://localhost:4173/softprobe-web-record-sdk.umd.js');
     </script>
   </body>
 </html>

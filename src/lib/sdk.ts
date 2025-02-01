@@ -2,51 +2,58 @@ import { record as rrwebRecord } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { mergeTags } from './utils';
 
-const MAX_EVENTS = 500; // 设置最大事件数量
-const MAX_RETRY = 3; // 设置最大重试次数
+const MAX_EVENTS = 500;
+const MAX_RETRY = 3;
 
 export type Tags = {
   userId?: string;
   clientId?: string;
-  mobileNo?: string;
+  email?: string;
+  phoneNo?: string;
   ext?: Record<string, string>;
 };
 
-export interface ArexManualRecordSdkOptions extends recordOptions<any> {
+export interface ManualRecordSdkOptions extends recordOptions<any> {
   tags?: Tags;
 }
 
-export interface ArexRecordSdkOptions extends ArexManualRecordSdkOptions {
-  appId: string;
-  tenantCode: string;
-  serverUrl: string;
-  interval?: number;
-  manual?: boolean;
+export interface RecordSdkOptions extends ManualRecordSdkOptions {
+  authToken: string; // The JWT token for authentication
+  serverUrl?: string; // The URL of the server
+  interval?: number; // The interval of the recording
+  manual?: boolean; // Whether to manually start the recording
 }
 
-export default class ArexRecordSdk {
+interface RetryOptions {
+    maxRetries?: number;
+    initialDelayMs?: number;
+    maxDelayMs?: number;
+    backoffFactor?: number;
+    retryableErrors?: Array<string | RegExp>;
+    shouldRetry?: (error: any) => boolean;
+}
+
+export default class RecordSdk {
   private events: any[] = [];
-  private readonly appId: string;
-  private readonly tenantCode: string;
+  private readonly authToken: string;
   private readonly recordId: string;
   private readonly serverUrl: string;
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
+  private hasNewEvent: boolean = true;
 
-  constructor(options: ArexRecordSdkOptions) {
+  constructor(options: RecordSdkOptions) {
     const {
-      appId,
-      tenantCode,
-      serverUrl = '//storage.arextest.com/api/rr/record',
+      authToken,
+      serverUrl = 'https://upload.whateverhome.store',
       interval = 5000,
       manual = false,
       tags = {},
       ...recordOptions
     } = options;
 
-    this.appId = appId;
-    this.tenantCode = tenantCode;
+    this.authToken = authToken;
     this.recordId = this.uuid();
     this.serverUrl = serverUrl.startsWith('//')
       ? `${window.location.protocol}${serverUrl}`
@@ -55,23 +62,23 @@ export default class ArexRecordSdk {
     this.tags = tags;
     this.recordOptions = recordOptions;
 
-    this.init();
-
     !manual && this.record();
 
     return this;
   }
 
-  record(recordOptions?: ArexManualRecordSdkOptions) {
+  record(recordOptions?: ManualRecordSdkOptions) {
     const { tags = {}, ...options } = recordOptions || {};
     let isSaving = false;
 
-    const emitEvent: recordOptions<any>['emit'] = (event) => {
+    const emitEvent: recordOptions<any>['emit'] = (event: any) => {
       if (this.events.length >= MAX_EVENTS) {
         this.events.shift(); // remove the oldest event
       }
       this.events.push(event);
+      this.hasNewEvent = true;
     };
+
 
     const stopFn = rrwebRecord({
       emit: emitEvent,
@@ -104,50 +111,70 @@ export default class ArexRecordSdk {
   }
 
   private async save(params?: { tags?: Tags }) {
-    if (this.events.length === 0) return;
+    if (this.events.length === 0 || !this.hasNewEvent) return;
 
     const body = JSON.stringify({
-      appId: this.appId,
       events: this.events,
       recordId: this.recordId,
       ...mergeTags(this.tags, params?.tags)
     });
 
-    let attempts = 0;
-
-    while (attempts < MAX_RETRY) {
-      try {
+    try {
+      await this.retryOperation(async () => {
         const fetchRes = await fetch(this.serverUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Arex-Tenant-Code': this.tenantCode
+            'Authorization': `Bearer ${this.authToken}`,
+            'x-sp-record-id': this.recordId,
+            'x-sp-tags': JSON.stringify(this.tags),
           },
-          body
+          body,
+          redirect: 'follow'
         });
 
         if (!fetchRes.ok) {
-          throw new Error(`HTTP error! Status: ${fetchRes.status}`);
+          throw new Error(`HTTP error! Status Code: ${fetchRes.status}. Details: ${await fetchRes.text()}`);
         }
 
-        const fetchData = await fetchRes.json();
+        this.hasNewEvent = false;
+      });
 
-        if (fetchData.body === true) {
-          this.events = []; // Clear events on successful save
-          return; // Exit after successful save
-        } else {
-          throw new Error('Failed to save record');
-        }
-      } catch (e) {
-        console.error(e);
-        attempts++;
-        if (attempts === MAX_RETRY) {
-          console.error(
-            'Max retries reached. Events will be retained for next attempt.'
-          );
-        }
-      }
+    } catch (error) {
+      console.error('All retry attempts failed:', error);
+      console.error('Events will be retained for next attempt.');
     }
+  }
+
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    {
+        maxRetries = MAX_RETRY,
+        initialDelayMs = 1000,
+        maxDelayMs = 10000,
+        backoffFactor = 2,
+    }: RetryOptions = {}
+  ): Promise<T> {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error;
+            
+            console.error(`Attempt ${attempt} failed:`, error);            
+            if (attempt === maxRetries) break;
+            
+            const baseDelay = initialDelayMs * Math.pow(backoffFactor, attempt - 1);
+            const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
+            const finalDelay = Math.min(jitteredDelay, maxDelayMs);
+            
+            await new Promise(resolve => setTimeout(resolve, finalDelay));
+        }
+    }
+    
+    throw lastError;
   }
 
   private uuid() {
@@ -158,23 +185,6 @@ export default class ArexRecordSdk {
       ).toString(16)
     );
   }
-
-  private init() {
-    XMLHttpRequest.prototype.open = (function (open) {
-      return function () {
-        // @ts-ignore
-        open.apply(this, arguments);
-        // @ts-ignore
-        this.setRequestHeader('arex-fe-record-id', this.recordId);
-        // @ts-ignore
-        this.setRequestHeader('arex-fe-app-id', this.appId);
-        // @ts-ignore
-        this.setRequestHeader('arex-force-record', 'true');
-      };
-    })(XMLHttpRequest.prototype.open);
-
-    console.log('RR-Record Session: ' + this.recordId);
-  }
 }
 
-(window as any).AREX_RECORD_SDK = ArexRecordSdk;
+(window as any).SOFTPPROBE_RECORD_SDK = RecordSdk;

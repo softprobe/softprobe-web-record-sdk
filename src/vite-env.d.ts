@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
-import AREX_RECORD_SDK from './lib/sdk.ts';
+import SOFTPROBE_RECORD_SDK from './lib/sdk.ts';
 
 declare global {
   interface Global {
-    AREX_RECORD_SDK: typeof AREX_RECORD_SDK;
+    SOFTPROBE_RECORD_SDK: typeof SOFTPROBE_RECORD_SDK;
   }
 }

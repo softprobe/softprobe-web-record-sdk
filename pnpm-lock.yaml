@@ -8,12 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@arextest/arex-record-sdk':
-        specifier: ^0.0.1
-        version: 0.0.1
-      prettier:
-        specifier: ^3.3.3
-        version: 3.3.3
       rrweb:
         specifier: 2.0.0-alpha.4
         version: 2.0.0-alpha.4
@@ -21,6 +15,9 @@ importers:
       '@types/node':
         specifier: ^22.9.0
         version: 22.9.0
+      prettier:
+        specifier: ^3.3.3
+        version: 3.3.3
       typescript:
         specifier: ~5.6.2
         version: 5.6.3
@@ -29,10 +26,6 @@ importers:
         version: 5.4.11(@types/node@22.9.0)
 
 packages:
-
-  '@arextest/arex-record-sdk@0.0.1':
-    resolution: {integrity: sha512-JQbC+GkB+tpoxo9I/JkRKrL9q6wfq+Vx9A5vV19d3RQR0j3XZqzUUEa4R129IaSnEiOO2W27dfEHZ2lVC/hwvQ==}
-    engines: {node: '>=19.0.0'}
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -375,10 +368,6 @@ packages:
         optional: true
 
 snapshots:
-
-  '@arextest/arex-record-sdk@0.0.1':
-    dependencies:
-      rrweb: 2.0.0-alpha.4
 
   '@esbuild/aix-ppc64@0.21.5':
     optional: true

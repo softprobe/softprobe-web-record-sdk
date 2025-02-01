@@ -1,29 +1,31 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-// 定义源文件和目标文件路径
+/** 
+ * Copies the SDK build file from source to destination directory
+ * Checks if source exists and destination is accessible before copying
+ */
+
+// Get current directory path
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const sourceDir = path.join(__dirname, 'dist');
-const sourceFile = path.join(sourceDir, 'arex-record-sdk.umd.js');
-const destinationDir = path.join(__dirname, 'dist-demo');
-const destinationFile = path.join(destinationDir, 'arex-record-sdk.umd.js');
+
+// Define source and destination paths
+const sourceFile = './dist/softprobe-web-record-sdk.umd.js';
+const destinationFile = './dist-demo/softprobe-web-record-sdk.umd.js';
 
 async function copyFile() {
   try {
+    // Check if source directory exists
     try {
-      await fs.access(sourceDir);
+      await fs.access(sourceFile);
     } catch {
       return console.info(
-        'The skd build does not exist. Run script pnpm run build first before copying the file.'
+        `The skd build ${sourceFile} does not exist. Run script pnpm run build first before copying the file.`
       );
+
     }
 
-    try {
-      await fs.access(destinationDir);
-    } catch {
-      return;
-    }
-
+    // Copy the file and log success
     await fs.copyFile(sourceFile, destinationFile);
     console.log('success to copy file!');
   } catch (err) {
@@ -31,4 +33,5 @@ async function copyFile() {
   }
 }
 
+// Execute the copy operation
 copyFile();

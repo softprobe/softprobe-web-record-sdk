@@ -1,11 +1,11 @@
-### AREX RECORD SDK
+### SOFTPROBE RECORD SDK
 
-This is the official SDK for the Arex Frontend Record API.
+This is the official SDK for the Softprobe Frontend Record API.
 
 #### Installation
 
 ```bash
-npm install @arextest/arex-record-sdk
+npm install @softprobe/softprobe-web-record-sdk
 ```
 
 #### Basic Usage
@@ -18,22 +18,22 @@ npm install @arextest/arex-record-sdk
     var s = document.createElement('script');
     s.src = c;
     s.onload = function () {
-      new w.AREX_RECORD_SDK({
+      new w.SOFTPROBE_RECORD_SDK({
         appId: '<appId>',
         tenantCode: '<tenantCode>',
       });
     };
     d.body.appendChild(s);
-  })(window, document, 'https://unpkg.com/@arextest/arex-record-sdk');
+  })(window, document, 'https://unpkg.com/@softprobe/softprobe-web-record-sdk');
 </script>
 ```
 
 ##### npm
 
 ```javascript
-import ArexRecordSdk from '@arextest/arex-record-sdk';
+import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
-new ArexRecordSdk({
+new RecordSdk({
     appId: '<appId>',
     tenantCode: '<tenantCode>'
 });
@@ -42,9 +42,9 @@ new ArexRecordSdk({
 #### Advanced Usage
 
 ```javascript
-import ArexRecordSdk from '@arextest/arex-record-sdk';
+import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
-const skd = new ArexRecordSdk({
+const skd = new RecordSdk({
   appId: '<appId>',
   tenantCode: '<tenantCode>',
   serverUrl: '<serverUrl>',
