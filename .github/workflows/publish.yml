@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
           scope: '@softprobe'
           
@@ -25,10 +25,18 @@ jobs:
       - name: Build
         run: npm run build
         
+      - name: Setup .npmrc
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          echo "@softprobe:registry=https://registry.npmjs.org/" >> ~/.npmrc
+          cat ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
       - name: Publish to npm
         run: |
-          # print .npmrc file
-          cat ~/.npmrc
+          git checkout main
           npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
