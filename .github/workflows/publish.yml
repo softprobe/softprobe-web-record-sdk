@@ -19,21 +19,15 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@softprobe'
           
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
         
       - name: Build
-        run: pnpm run build
+        run: npm run build
         
       - name: Publish to npm
         run: |
           git checkout main  # Ensure we're on main branch
-          pnpm publish --provenance --access public
+          npm publish --provenance --access public
         env:
-          NPM_CONFIG_REGISTRY: "https://registry.npmjs.org"
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

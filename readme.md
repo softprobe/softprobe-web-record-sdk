@@ -45,16 +45,15 @@ new RecordSdk({
 import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
 const skd = new RecordSdk({
-  appId: '<appId>',
-  tenantCode: '<tenantCode>',
-  serverUrl: '<serverUrl>',
-  timeout: 10000,
+  authToken: '<authToken>',
+  timeout: 10000, // 10s
   manual: true, 
   tags: {
     userId: '<userId>',
     clientId: '<clientId>',
     mobileNo: '<mobileNo>'
   },
+
   maskAllInputs: true
 });
 
@@ -116,10 +115,10 @@ setTimeout(() => {
 #### Development
 
 ```bash
-pnpm install
-pnpm run dev
-pnpm run build # build sdk
-pnpm run build:demo # build demo project
-pnpm run build:dem-cdn # build demo project for cdn usage
-pnpm run preview # preview demo project
+npm install
+npm run dev
+npm run build # build sdk
+npm run build:demo # build demo project
+npm run build:dem-cdn # build demo project for cdn usage
+npm run preview # preview demo project
 ```
