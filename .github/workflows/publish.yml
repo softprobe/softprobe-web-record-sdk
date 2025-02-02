@@ -29,8 +29,9 @@ jobs:
         run: pnpm run build
         
       - name: Publish to npm
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          pnpm publish --no-git-checks
+        uses: pnpm/action-publish@v1
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          access: public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
