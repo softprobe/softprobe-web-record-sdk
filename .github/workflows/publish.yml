@@ -4,6 +4,11 @@ on:
     tags:
       - 'v*'
 
+# Add permissions block for npm provenance
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
