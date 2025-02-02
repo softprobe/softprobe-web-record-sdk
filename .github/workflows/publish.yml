@@ -32,7 +32,6 @@ jobs:
         
       - name: Publish to npm
         run: |
-          cat ~/.npmrc
           npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
