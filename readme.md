@@ -33,21 +33,28 @@ npm install @softprobe/softprobe-web-record-sdk
 ```javascript
 import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
+// The only required parameter are appId and authToken
 new RecordSdk({
     appId: '<appId>',
-    tenantCode: '<tenantCode>'
+    authToken: '<authToken>'
 });
 ```
 
 #### Advanced Usage
+
+Custom tags are simple key-value pairs that you can use to add additional information to the recording. 
+They are useful for adding user information, or any other information that you want to record with the recording.
 
 ```javascript
 import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
 const skd = new RecordSdk({
   authToken: '<authToken>',
+  appId: '<appId>',
   timeout: 10000, // 10s
-  manual: true, 
+  manual: true, // manual control record start and stop
+
+  // You can set custom tags here
   tags: {
     userId: '<userId>',
     clientId: '<clientId>',
@@ -57,14 +64,21 @@ const skd = new RecordSdk({
   maskAllInputs: true
 });
 
-// set extra tags, also can be set in skd.record method
+// set custom tags
 skd.setTags({
-  ext: {
-      extKey: 'extValue'
-  }
+  country: 'US',
+  state: 'CA',
 });
 
-const { stop } = skd.record();
+// or you can add tags when you record
+const { stop } = skd.record({
+  tags: {
+    'address.street': '123 Main St',
+    'address.city': 'San Francisco',
+    'address.state': 'CA',
+    'address.zip': '94101'
+  }
+});
 
 // stop record after 10s
 setTimeout(() => {
