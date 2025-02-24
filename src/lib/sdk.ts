@@ -45,18 +45,20 @@ export default class RecordSdk {
   private tags: Tags;
   private systemInfo: any;
   private hasNewEvent: boolean = true;
+  private visitorId: string;
+  private readonly COOKIE_NAME = '_sp_vid';
+  private readonly COOKIE_DOMAIN: string;
+  private readonly COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year in seconds
 
   constructor(options: RecordSdkOptions) {
     const {
       authToken,
       appId,
-      // TODO: change this to the server url of the user
-      serverUrl = 'https://upload.whateverhome.store',
+      serverUrl = 'https://upload.softprobe.ai',
       interval = 5000,
       manual = false,
       tags = {},
       ...recordOptions
-
     } = options;
 
     if (!appId) {
@@ -75,13 +77,70 @@ export default class RecordSdk {
     this.interval = Math.max(interval, 5000);
     this.tags = tags;
     this.recordOptions = recordOptions;
+    
+    // Determine cookie domain based on serverUrl
+    const serverUrlObj = new URL(this.serverUrl);
+    this.COOKIE_DOMAIN = serverUrlObj.hostname.startsWith('localhost') 
+      ? 'localhost'
+      : `.${serverUrlObj.hostname.split('.').slice(-2).join('.')}`;
+
+    // Initialize visitor ID
+    this.visitorId = this.getOrCreateVisitorId();
 
     !manual && this.record();
 
     return this;
   }
 
-  record(recordOptions?: ManualRecordSdkOptions) {
+  private getOrCreateVisitorId(): string {    
+    const existingId = this.getCookie(this.COOKIE_NAME);
+    if (existingId) {
+      return existingId;
+    }
+
+    const newId = this.uuid();
+    this.setCookie(this.COOKIE_NAME, newId);
+        
+    return newId;
+  }
+
+  private setCookie(name: string, value: string): void {
+    try {
+      const isLocalhost = window.location.hostname === 'localhost';
+      
+      const cookieAttributes = [
+        `${name}=${encodeURIComponent(value)}`,
+        // Only set domain attribute if not on localhost
+        ...(isLocalhost ? [] : [`domain=${this.COOKIE_DOMAIN}`]),
+        `max-age=${this.COOKIE_MAX_AGE}`,
+        'path=/',
+        // Only set SameSite=None and Secure if not on localhost
+        ...(isLocalhost 
+          ? [] 
+          : ['SameSite=None', 'Secure']
+        )
+      ];
+
+      const cookieString = cookieAttributes.join('; ');
+      document.cookie = cookieString;
+    } catch (error) {
+      console.error('Error in setCookie:', error);
+      throw error;
+    }
+  }
+
+  private getCookie(name: string): string | null {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [cookieName, cookieValue] = cookie.trim().split('=');
+      if (cookieName === name) {
+        return cookieValue;
+      }
+    }
+    return null;
+  }
+
+  public record(recordOptions?: ManualRecordSdkOptions) {
     const { tags = {}, ...options } = recordOptions || {};
     let isSaving = false;
 
@@ -120,11 +179,11 @@ export default class RecordSdk {
     };
   }
 
-  setTags(tags: Tags, override = false) {
+  public setTags(tags: Tags, override = false) {
     this.tags = override ? tags : { ...this.tags, ...tags };
   }
 
-  async getSystemInfo() {
+  public async getSystemInfo() {
     // Create a parser instance to extract UA details
     const parser = new UAParser();
     const result = await parser.getResult().withClientHints();
@@ -143,6 +202,7 @@ export default class RecordSdk {
       '__sp.device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
       '__sp.width': window.innerWidth,
       '__sp.height': window.innerHeight,
+      '__sp.visitorId': this.visitorId
     };
 
     return this.systemInfo;
@@ -170,10 +230,12 @@ export default class RecordSdk {
             'Authorization': `Bearer ${this.authToken}`,
             'x-sp-app-id': this.appId,
             'x-sp-record-id': this.recordId,
+            'x-sp-visitor-id': this.visitorId,
             'x-sp-tags': JSON.stringify(tags),
           },
           body,
-          redirect: 'follow'
+          redirect: 'follow',
+          // credentials: 'include' // Include cookies in cross-origin requests
         });
 
         if (!fetchRes.ok) {
@@ -206,7 +268,7 @@ export default class RecordSdk {
         } catch (error) {
             lastError = error;
             
-            console.error(`Attempt ${attempt} failed:`, error);            
+            console.error(`Attempt ${attempt} failed:`, error); 
             if (attempt === maxRetries) break;
             
             const baseDelay = initialDelayMs * Math.pow(backoffFactor, attempt - 1);
