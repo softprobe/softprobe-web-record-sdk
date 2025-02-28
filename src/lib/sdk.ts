@@ -18,7 +18,7 @@ export interface ManualRecordSdkOptions extends recordOptions<any> {
 }
 
 export interface RecordSdkOptions extends ManualRecordSdkOptions {
-  authToken: string; // The JWT token for authentication
+  tenantId: string; // The JWT token for authentication
   appId: string; // The app id
   serverUrl?: string; // The URL of the server
   interval?: number; // The interval of the recording
@@ -37,8 +37,8 @@ interface RetryOptions {
 export default class RecordSdk {
   private events: any[] = [];
   private readonly appId: string;
-  private readonly authToken: string;
-  private readonly recordId: string;
+  private readonly tenantId: string;
+  private readonly sessionId: string;
   private readonly serverUrl: string;
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
@@ -52,9 +52,9 @@ export default class RecordSdk {
 
   constructor(options: RecordSdkOptions) {
     const {
-      authToken,
+      tenantId,
       appId,
-      serverUrl = 'https://upload.softprobe.ai',
+      serverUrl = 'https://www.softprobe.ai/api/v1/recording',
       interval = 5000,
       manual = false,
       tags = {},
@@ -64,13 +64,13 @@ export default class RecordSdk {
     if (!appId) {
       throw new Error('appId is required');
     }
-    if (!authToken) {
-      throw new Error('authToken is required');
+    if (!tenantId) {
+      throw new Error('tenantId is required');
     }
 
-    this.authToken = authToken;
+    this.tenantId = tenantId;
     this.appId = appId;
-    this.recordId = this.uuid();
+    this.sessionId = this.uuid();
     this.serverUrl = serverUrl.startsWith('//')
       ? `${window.location.protocol}${serverUrl}`
       : serverUrl;
@@ -190,19 +190,17 @@ export default class RecordSdk {
 
     // Initialize and remember the metadata
     this.systemInfo = {
-      '__sp.appId': this.appId,
-      '__sp.recordId': this.recordId,
-      '__sp.ua': result.ua,
-      '__sp.referer': document.referrer || null,
-      '__sp.os': result.os.name || 'Unknown',
-      '__sp.osVersion': result.os.version || 'Unknown',
-      '__sp.browser': result.browser.name || 'Unknown',
-      '__sp.browserVersion': result.browser.version || 'Unknown',
-      '__sp.cpu': result.cpu.architecture || 'Unknown',
-      '__sp.device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
-      '__sp.width': window.innerWidth,
-      '__sp.height': window.innerHeight,
-      '__sp.visitorId': this.visitorId
+      '_sp_ua': result.ua,
+      '_sp_referer': document.referrer || null,
+      '_sp_os': result.os.name || 'Unknown',
+      '_sp_osVersion': result.os.version || 'Unknown',
+      '_sp_browser': result.browser.name || 'Unknown',
+      '_sp_browserVersion': result.browser.version || 'Unknown',
+      '_sp_cpu': result.cpu.architecture || 'Unknown',
+      '_sp_device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
+      '_sp_width': window.innerWidth,
+      '_sp_height': window.innerHeight,
+      '_sp_vid': this.visitorId
     };
 
     return this.systemInfo;
@@ -211,15 +209,25 @@ export default class RecordSdk {
   private async save(params?: { tags?: Tags }) {
     if (this.events.length === 0 || !this.hasNewEvent) return;
 
-    const body = JSON.stringify({
-      events: this.events,
-    });
-
     if (!this.systemInfo) {
       this.systemInfo = await this.getSystemInfo();
     }
 
-    const tags = { ...this.tags, ...params?.tags, ...this.systemInfo };
+    const body = JSON.stringify({
+      metadata: {
+        appId: this.appId,
+        sessionId: this.sessionId,
+        tenantId: this.tenantId,
+        tags: {
+          ...this.systemInfo,
+          ...this.tags, 
+          ...params?.tags,
+        },
+      },
+      data: {
+        events: this.events,
+      },
+    });
 
     try {
       await this.retryOperation(async () => {
@@ -227,11 +235,6 @@ export default class RecordSdk {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.authToken}`,
-            'x-sp-app-id': this.appId,
-            'x-sp-record-id': this.recordId,
-            'x-sp-visitor-id': this.visitorId,
-            'x-sp-tags': JSON.stringify(tags),
           },
           body,
           redirect: 'follow',
