@@ -2,9 +2,9 @@ import './style.css';
 import typescriptLogo from './typescript.svg';
 import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
-import RecordSdk from './lib/sdk';
+import initSoftprobe from './lib/sdk';
 
-new RecordSdk({
+initSoftprobe({
   appId: 'appId123',
   tenantId: 'tenant123',
   tags: {
