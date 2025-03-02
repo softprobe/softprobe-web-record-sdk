@@ -1,9 +1,30 @@
 import { record as rrwebRecord } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { UAParser } from 'ua-parser-js';
+import heatmapStill from './heatmapStill';
 
 const MAX_EVENTS = 500;
 const MAX_RETRY = 3;
+
+export type SystemInfo = {
+  '__sp.appId': string;
+  '__sp.recordId': string;
+  '__sp.ua': string;
+  '__sp.url': string;
+  '__sp.search': string;
+  '__sp.referer': string | null;
+  '__sp.os': string;
+  '__sp.osVersion': string;
+  '__sp.browser': string;
+  '__sp.browserVersion': string;
+  '__sp.cpu': string;
+  '__sp.device': string;
+  '__sp.width': number;
+  '__sp.height': number;
+  '__sp.scrollWidth': number;
+  '__sp.scrollHeight': number;
+  '__sp.visitorId': string;
+}
 
 export type Tags = {
   userId?: string;
@@ -25,7 +46,7 @@ export interface RecordSdkOptions extends ManualRecordSdkOptions {
   manual?: boolean; // Whether to manually start the recording
 }
 
-interface RetryOptions {
+export interface RetryOptions {
     maxRetries?: number;
     initialDelayMs?: number;
     maxDelayMs?: number;
@@ -43,7 +64,7 @@ export default class RecordSdk {
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
-  private systemInfo: any;
+  private systemInfo: SystemInfo | null = null;
   private hasNewEvent: boolean = true;
   private visitorId: string;
   private readonly COOKIE_NAME = '_sp_vid';
@@ -162,9 +183,16 @@ export default class RecordSdk {
     const reportEvents = () => {
       if (this.events.length > 0 && !isSaving) {
         isSaving = true;
+        
+        // Save the events and reset the flag
         this.save({ tags }).finally(() => {
           isSaving = false;
         });
+
+        // Save heatmap data
+        // Not nessary, allow to fail silently
+        const getHeatmapData = heatmapStill(this.systemInfo, this.events);
+        // TODO: send heatmap data to backend
       }
     };
 
@@ -193,6 +221,8 @@ export default class RecordSdk {
       '__sp.appId': this.appId,
       '__sp.recordId': this.recordId,
       '__sp.ua': result.ua,
+      '__sp.url': window.location.hostname + window.location.pathname,
+      '__sp.search': window.location.search,
       '__sp.referer': document.referrer || null,
       '__sp.os': result.os.name || 'Unknown',
       '__sp.osVersion': result.os.version || 'Unknown',
@@ -202,6 +232,8 @@ export default class RecordSdk {
       '__sp.device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
       '__sp.width': window.innerWidth,
       '__sp.height': window.innerHeight,
+      '__sp.scrollWidth': document.documentElement.scrollWidth,
+      '__sp.scrollHeight': document.documentElement.scrollHeight,
       '__sp.visitorId': this.visitorId
     };
 

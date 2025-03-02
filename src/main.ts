@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
 import RecordSdk from './lib/sdk';
 
+
 new RecordSdk({
   serverUrl: 'https://api.yunfeizuo.workers.dev/api/recordings',
   appId: 'appId123',
@@ -15,6 +16,7 @@ new RecordSdk({
     phoneNo: '1234567890',
   }
 });
+
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">
