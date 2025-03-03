@@ -14,6 +14,7 @@ initSoftprobe({
     phoneNo: '1234567890',
   }
 });
+
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <a href="https://vite.dev" target="_blank">

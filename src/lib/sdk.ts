@@ -1,8 +1,30 @@
 import { record as rrwebRecord } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { UAParser } from 'ua-parser-js';
+import heatmapStill from './heatmapStill';
 
 const MAX_EVENTS = 500;
+
+export type SystemInfo = {
+  '_sp_appId': string;
+  '_sp_recordId': string;
+  '_sp_ua': string;
+  '_sp_url': string;
+  '_sp_search': string;
+  '_sp_referer': string | null;
+  '_sp_os': string;
+  '_sp_osVersion': string;
+  '_sp_browser': string;
+  '_sp_browserVersion': string;
+  '_sp_cpu': string;
+  '_sp_device': string;
+  '_sp_width': number;
+  '_sp_height': number;
+  '_sp_scrollWidth': number;
+  '_sp_scrollHeight': number;
+  '_sp_visitorId': string;
+  '_sp_vid': string;
+}
 
 export type Tags = {
   userId?: string;
@@ -25,6 +47,15 @@ export interface RecordSdkOptions extends ManualRecordSdkOptions {
   manual?: boolean; // Whether to manually start the recording
 }
 
+export interface RetryOptions {
+  maxRetries?: number;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+  backoffFactor?: number;
+  retryableErrors?: Array<string | RegExp>;
+  shouldRetry?: (error: any) => boolean;
+}
+
 export class RecordSdk {
   private events: any[] = [];
   private readonly appId: string;
@@ -34,7 +65,8 @@ export class RecordSdk {
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
-  private systemInfo: any;
+  private systemInfo: SystemInfo | null = null;
+  private hasNewEvent: boolean = true;
   private visitorId: string;
   private readonly COOKIE_NAME = '_sp_vid';
   private readonly COOKIE_DOMAIN: string;
@@ -132,7 +164,7 @@ export class RecordSdk {
 
   public record(recordOptions?: ManualRecordSdkOptions) {
     const { tags = {}, ...options } = recordOptions || {};
-    
+
     const emitEvent: recordOptions<any>['emit'] = async (event: any) => {
       if (this.events.length >= MAX_EVENTS) {
         this.events.shift(); // remove the oldest event
@@ -146,7 +178,15 @@ export class RecordSdk {
       ...options
     });
 
-    const intervalId = setInterval(() => this.save({ tags }), this.interval);
+    const intervalId = setInterval(() => {
+      // Save the events 
+      this.save({ tags })
+
+      // Save heatmap data
+      // Not nessary, allow to fail silently
+      const getHeatmapData = heatmapStill(this.systemInfo, this.events);
+      // TODO: send heatmap data to backend
+    }, this.interval);
 
     return {
       stop: () => {
@@ -169,6 +209,8 @@ export class RecordSdk {
     // Initialize and remember the metadata
     this.systemInfo = {
       '_sp_ua': result.ua,
+      '_sp_url': window.location.hostname + window.location.pathname,
+      '_sp_search': window.location.search,
       '_sp_referer': document.referrer || null,
       '_sp_os': result.os.name || 'Unknown',
       '_sp_osVersion': result.os.version || 'Unknown',
@@ -178,6 +220,8 @@ export class RecordSdk {
       '_sp_device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
       '_sp_width': window.innerWidth,
       '_sp_height': window.innerHeight,
+      '_sp_scrollWidth': document.documentElement.scrollWidth,
+      '_sp_scrollHeight': document.documentElement.scrollHeight,
       '_sp_vid': this.visitorId
     };
 
@@ -186,7 +230,7 @@ export class RecordSdk {
 
   private async save(params?: { tags?: Tags }) {
     if (this.events.length === 0) return;
-    
+
     // Use a static flag to prevent concurrent saves
     if ((this.save as any).isSaving) return;
     (this.save as any).isSaving = true;
