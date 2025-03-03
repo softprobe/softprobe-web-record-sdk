@@ -33,10 +33,10 @@ npm install @softprobe/softprobe-web-record-sdk
 ```javascript
 import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
-// The only required parameter are appId and authToken
+// The only required parameter are appId and tenantId
 new RecordSdk({
     appId: '<appId>',
-    authToken: '<authToken>'
+    tenantId: '<tenantId>'
 });
 ```
 
@@ -49,7 +49,7 @@ They are useful for adding user information, or any other information that you w
 import RecordSdk from '@softprobe/softprobe-web-record-sdk';
 
 const skd = new RecordSdk({
-  authToken: '<authToken>',
+  tenantId: '<tenantId>',
   appId: '<appId>',
   timeout: 10000, // 10s
   manual: true, // manual control record start and stop

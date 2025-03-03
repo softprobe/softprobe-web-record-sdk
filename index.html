@@ -15,7 +15,8 @@
         s.src = c;
         s.onload = function () {
           const skd = new w.SOFTPROBE_RECORD_SDK({
-            authToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjEyMzQ1Njc4OTAiLCJ0ZW5hbnQiOiJqb24iLCJpYXQiOjE1MTYyMzkwMjJ9.yp61mnebnorgEP3NU34E1mbFNSEqAVFgF2GVWtEk51g',
+            tenantId: 'tanant123',
+            appId: 'app123',
             interval: 10000, // interval time for sending data to server, default 5000ms
             manual: true, // manual control record start and stop
             // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options

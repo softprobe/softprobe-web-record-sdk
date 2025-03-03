@@ -2,13 +2,11 @@ import './style.css';
 import typescriptLogo from './typescript.svg';
 import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
-import RecordSdk from './lib/sdk';
+import initSoftprobe from './lib/sdk';
 
-
-new RecordSdk({
-  serverUrl: 'https://api.yunfeizuo.workers.dev/api/recordings',
+initSoftprobe({
   appId: 'appId123',
-  authToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjEyMzQ1Njc4OTAiLCJ0ZW5hbnQiOiJqb24iLCJpYXQiOjE1MTYyMzkwMjJ9.yp61mnebnorgEP3NU34E1mbFNSEqAVFgF2GVWtEk51g',
+  tenantId: 'tenant123',
   tags: {
     userId: 'userId123',
     clientId: 'clientId1234567890',

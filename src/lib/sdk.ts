@@ -4,26 +4,26 @@ import { UAParser } from 'ua-parser-js';
 import heatmapStill from './heatmapStill';
 
 const MAX_EVENTS = 500;
-const MAX_RETRY = 3;
 
 export type SystemInfo = {
-  '__sp.appId': string;
-  '__sp.recordId': string;
-  '__sp.ua': string;
-  '__sp.url': string;
-  '__sp.search': string;
-  '__sp.referer': string | null;
-  '__sp.os': string;
-  '__sp.osVersion': string;
-  '__sp.browser': string;
-  '__sp.browserVersion': string;
-  '__sp.cpu': string;
-  '__sp.device': string;
-  '__sp.width': number;
-  '__sp.height': number;
-  '__sp.scrollWidth': number;
-  '__sp.scrollHeight': number;
-  '__sp.visitorId': string;
+  '_sp_appId': string;
+  '_sp_recordId': string;
+  '_sp_ua': string;
+  '_sp_url': string;
+  '_sp_search': string;
+  '_sp_referer': string | null;
+  '_sp_os': string;
+  '_sp_osVersion': string;
+  '_sp_browser': string;
+  '_sp_browserVersion': string;
+  '_sp_cpu': string;
+  '_sp_device': string;
+  '_sp_width': number;
+  '_sp_height': number;
+  '_sp_scrollWidth': number;
+  '_sp_scrollHeight': number;
+  '_sp_visitorId': string;
+  '_sp_vid': string;
 }
 
 export type Tags = {
@@ -39,7 +39,8 @@ export interface ManualRecordSdkOptions extends recordOptions<any> {
 }
 
 export interface RecordSdkOptions extends ManualRecordSdkOptions {
-  authToken: string; // The JWT token for authentication
+  // TODO: remove tenantId and derive it from appId instead
+  tenantId: string; // The tenant id
   appId: string; // The app id
   serverUrl?: string; // The URL of the server
   interval?: number; // The interval of the recording
@@ -47,19 +48,19 @@ export interface RecordSdkOptions extends ManualRecordSdkOptions {
 }
 
 export interface RetryOptions {
-    maxRetries?: number;
-    initialDelayMs?: number;
-    maxDelayMs?: number;
-    backoffFactor?: number;
-    retryableErrors?: Array<string | RegExp>;
-    shouldRetry?: (error: any) => boolean;
+  maxRetries?: number;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+  backoffFactor?: number;
+  retryableErrors?: Array<string | RegExp>;
+  shouldRetry?: (error: any) => boolean;
 }
 
-export default class RecordSdk {
+export class RecordSdk {
   private events: any[] = [];
   private readonly appId: string;
-  private readonly authToken: string;
-  private readonly recordId: string;
+  private readonly tenantId: string;
+  private readonly sessionId: string;
   private readonly serverUrl: string;
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
@@ -73,9 +74,9 @@ export default class RecordSdk {
 
   constructor(options: RecordSdkOptions) {
     const {
-      authToken,
+      tenantId,
       appId,
-      serverUrl = 'https://upload.softprobe.ai',
+      serverUrl = 'https://www.softprobe.ai/api/v1/recording',
       interval = 5000,
       manual = false,
       tags = {},
@@ -85,23 +86,23 @@ export default class RecordSdk {
     if (!appId) {
       throw new Error('appId is required');
     }
-    if (!authToken) {
-      throw new Error('authToken is required');
+    if (!tenantId) {
+      throw new Error('tenantId is required');
     }
 
-    this.authToken = authToken;
+    this.tenantId = tenantId;
     this.appId = appId;
-    this.recordId = this.uuid();
+    this.sessionId = this.uuid();
     this.serverUrl = serverUrl.startsWith('//')
       ? `${window.location.protocol}${serverUrl}`
       : serverUrl;
     this.interval = Math.max(interval, 5000);
     this.tags = tags;
     this.recordOptions = recordOptions;
-    
+
     // Determine cookie domain based on serverUrl
     const serverUrlObj = new URL(this.serverUrl);
-    this.COOKIE_DOMAIN = serverUrlObj.hostname.startsWith('localhost') 
+    this.COOKIE_DOMAIN = serverUrlObj.hostname.startsWith('localhost')
       ? 'localhost'
       : `.${serverUrlObj.hostname.split('.').slice(-2).join('.')}`;
 
@@ -113,7 +114,7 @@ export default class RecordSdk {
     return this;
   }
 
-  private getOrCreateVisitorId(): string {    
+  private getOrCreateVisitorId(): string {
     const existingId = this.getCookie(this.COOKIE_NAME);
     if (existingId) {
       return existingId;
@@ -121,14 +122,14 @@ export default class RecordSdk {
 
     const newId = this.uuid();
     this.setCookie(this.COOKIE_NAME, newId);
-        
+
     return newId;
   }
 
   private setCookie(name: string, value: string): void {
     try {
       const isLocalhost = window.location.hostname === 'localhost';
-      
+
       const cookieAttributes = [
         `${name}=${encodeURIComponent(value)}`,
         // Only set domain attribute if not on localhost
@@ -136,8 +137,8 @@ export default class RecordSdk {
         `max-age=${this.COOKIE_MAX_AGE}`,
         'path=/',
         // Only set SameSite=None and Secure if not on localhost
-        ...(isLocalhost 
-          ? [] 
+        ...(isLocalhost
+          ? []
           : ['SameSite=None', 'Secure']
         )
       ];
@@ -163,16 +164,13 @@ export default class RecordSdk {
 
   public record(recordOptions?: ManualRecordSdkOptions) {
     const { tags = {}, ...options } = recordOptions || {};
-    let isSaving = false;
 
     const emitEvent: recordOptions<any>['emit'] = async (event: any) => {
       if (this.events.length >= MAX_EVENTS) {
         this.events.shift(); // remove the oldest event
       }
       this.events.push(event);
-      this.hasNewEvent = true;
     };
-
 
     const stopFn = rrwebRecord({
       emit: emitEvent,
@@ -180,29 +178,21 @@ export default class RecordSdk {
       ...options
     });
 
-    const reportEvents = () => {
-      if (this.events.length > 0 && !isSaving) {
-        isSaving = true;
-        
-        // Save the events and reset the flag
-        this.save({ tags }).finally(() => {
-          isSaving = false;
-        });
+    const intervalId = setInterval(() => {
+      // Save the events 
+      this.save({ tags })
 
-        // Save heatmap data
-        // Not nessary, allow to fail silently
-        const getHeatmapData = heatmapStill(this.systemInfo, this.events);
-        // TODO: send heatmap data to backend
-      }
-    };
-
-    const intervalId = setInterval(reportEvents, this.interval);
+      // Save heatmap data
+      // Not nessary, allow to fail silently
+      const getHeatmapData = heatmapStill(this.systemInfo, this.events);
+      // TODO: send heatmap data to backend
+    }, this.interval);
 
     return {
       stop: () => {
         clearInterval(intervalId);
         stopFn?.();
-        reportEvents();
+        this.save({ tags }); // Final save when stopping
       }
     };
   }
@@ -218,100 +208,75 @@ export default class RecordSdk {
 
     // Initialize and remember the metadata
     this.systemInfo = {
-      '__sp.appId': this.appId,
-      '__sp.recordId': this.recordId,
-      '__sp.ua': result.ua,
-      '__sp.url': window.location.hostname + window.location.pathname,
-      '__sp.search': window.location.search,
-      '__sp.referer': document.referrer || null,
-      '__sp.os': result.os.name || 'Unknown',
-      '__sp.osVersion': result.os.version || 'Unknown',
-      '__sp.browser': result.browser.name || 'Unknown',
-      '__sp.browserVersion': result.browser.version || 'Unknown',
-      '__sp.cpu': result.cpu.architecture || 'Unknown',
-      '__sp.device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
-      '__sp.width': window.innerWidth,
-      '__sp.height': window.innerHeight,
-      '__sp.scrollWidth': document.documentElement.scrollWidth,
-      '__sp.scrollHeight': document.documentElement.scrollHeight,
-      '__sp.visitorId': this.visitorId
+      '_sp_ua': result.ua,
+      '_sp_url': window.location.hostname + window.location.pathname,
+      '_sp_search': window.location.search,
+      '_sp_referer': document.referrer || null,
+      '_sp_os': result.os.name || 'Unknown',
+      '_sp_osVersion': result.os.version || 'Unknown',
+      '_sp_browser': result.browser.name || 'Unknown',
+      '_sp_browserVersion': result.browser.version || 'Unknown',
+      '_sp_cpu': result.cpu.architecture || 'Unknown',
+      '_sp_device': result.device.type || 'desktop', // UAParser returns undefined for desktop, so default to 'desktop'
+      '_sp_width': window.innerWidth,
+      '_sp_height': window.innerHeight,
+      '_sp_scrollWidth': document.documentElement.scrollWidth,
+      '_sp_scrollHeight': document.documentElement.scrollHeight,
+      '_sp_vid': this.visitorId
     };
 
     return this.systemInfo;
   }
 
   private async save(params?: { tags?: Tags }) {
-    if (this.events.length === 0 || !this.hasNewEvent) return;
+    if (this.events.length === 0) return;
 
-    const body = JSON.stringify({
-      events: this.events,
-    });
-
-    if (!this.systemInfo) {
-      this.systemInfo = await this.getSystemInfo();
-    }
-
-    const tags = { ...this.tags, ...params?.tags, ...this.systemInfo };
+    // Use a static flag to prevent concurrent saves
+    if ((this.save as any).isSaving) return;
+    (this.save as any).isSaving = true;
 
     try {
-      await this.retryOperation(async () => {
-        const fetchRes = await fetch(this.serverUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.authToken}`,
-            'x-sp-app-id': this.appId,
-            'x-sp-record-id': this.recordId,
-            'x-sp-visitor-id': this.visitorId,
-            'x-sp-tags': JSON.stringify(tags),
+      if (!this.systemInfo) {
+        this.systemInfo = await this.getSystemInfo();
+      }
+
+      const body = JSON.stringify({
+        metadata: {
+          appId: this.appId,
+          sessionId: this.sessionId,
+          tenantId: this.tenantId,
+          tags: {
+            ...this.systemInfo,
+            ...this.tags,
+            ...params?.tags,
           },
-          body,
-          redirect: 'follow',
-          // credentials: 'include' // Include cookies in cross-origin requests
-        });
-
-        if (!fetchRes.ok) {
-          throw new Error(`HTTP error! Status Code: ${fetchRes.status}. Details: ${await fetchRes.text()}`);
-        }
-
-        this.hasNewEvent = false;
+        },
+        data: {
+          events: this.events,
+        },
       });
 
-    } catch (error) {
-      console.error('All retry attempts failed:', error);
-      console.error('Events will be retained for next attempt.');
-    }
-  }
+      const fetchRes = await fetch(this.serverUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body,
+        redirect: 'follow',
+        // credentials: 'include' // Include cookies in cross-origin requests
+      });
 
-  private async retryOperation<T>(
-    operation: () => Promise<T>,
-    {
-        maxRetries = MAX_RETRY,
-        initialDelayMs = 1000,
-        maxDelayMs = 10000,
-        backoffFactor = 2,
-    }: RetryOptions = {}
-  ): Promise<T> {
-    let lastError;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            return await operation();
-        } catch (error) {
-            lastError = error;
-            
-            console.error(`Attempt ${attempt} failed:`, error); 
-            if (attempt === maxRetries) break;
-            
-            const baseDelay = initialDelayMs * Math.pow(backoffFactor, attempt - 1);
-            const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
-            const finalDelay = Math.min(jitteredDelay, maxDelayMs);
-            
-            await new Promise(resolve => setTimeout(resolve, finalDelay));
-        }
+      if (!fetchRes.ok) {
+        throw new Error(`HTTP error! Status Code: ${fetchRes.status}. Details: ${await fetchRes.text()}`);
+      }
+
+      // empty the events array
+      this.events = [];
+    } catch (error) {
+      console.error('Failed to save events:', error);
+    } finally {
+      (this.save as any).isSaving = false;
     }
-    
-    throw lastError;
   }
 
   private uuid() {
@@ -324,4 +289,11 @@ export default class RecordSdk {
   }
 }
 
-(window as any).SOFTPPROBE_RECORD_SDK = RecordSdk;
+// a helper function to initialize the sdk and start recording
+export default function initSoftprobe(options: RecordSdkOptions) {
+  return new RecordSdk(options);
+}
+
+// Export for browser global usage
+(window as any).RecordSdk = RecordSdk;
+(window as any).initSoftprobe = initSoftprobe;
