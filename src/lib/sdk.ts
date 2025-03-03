@@ -6,8 +6,6 @@ import heatmapStill from './heatmapStill';
 const MAX_EVENTS = 500;
 
 export type SystemInfo = {
-  '_sp_appId': string;
-  '_sp_recordId': string;
   '_sp_ua': string;
   '_sp_url': string;
   '_sp_search': string;
@@ -22,7 +20,6 @@ export type SystemInfo = {
   '_sp_height': number;
   '_sp_scrollWidth': number;
   '_sp_scrollHeight': number;
-  '_sp_visitorId': string;
   '_sp_vid': string;
 }
 
@@ -178,13 +175,15 @@ export class RecordSdk {
       ...options
     });
 
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(async () => {
       // Save the events 
       this.save({ tags })
 
       // Save heatmap data
       // Not nessary, allow to fail silently
-      const getHeatmapData = heatmapStill(this.systemInfo, this.events);
+      const sysInfo = await this.getSystemInfo();
+      const getHeatmapData = heatmapStill(sysInfo, this.events);
+      console.log('getHeatmapData', getHeatmapData);
       // TODO: send heatmap data to backend
     }, this.interval);
 

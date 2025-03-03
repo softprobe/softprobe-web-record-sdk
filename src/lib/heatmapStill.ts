@@ -22,18 +22,22 @@ const heatmapStill = (systemInfo: SystemInfo | null, events: eventWithTime[] = [
 
 
     // Filter out the data in mouse events that are not of mouse click
-    const clickEvents: incrementalSnapshotEvent[] = [];
+    const clickEvents: Array<{ x: number, y: number }> = [];
     mouseEvents.forEach((event: incrementalSnapshotEvent) => {
         if (event.data.source === IncrementalSource.MouseInteraction && LOGIN_CLICK_TYPE.includes(event.data.type)) {
-            clickEvents.push(event);
+            const click = {
+                x: event.data.x || 0,
+                y: event.data.y || 0,
+            }
+            clickEvents.push(click);
         };
     });
 
     // Filter out the screeshot events
     const screenshotEvents: fullSnapshotEvent[] = [];
     events.forEach((event: eventWithTime) => {
-        if (event.type === EventType.IncrementalSnapshot) {
-            mouseEvents.push(event);
+        if (event.type === EventType.FullSnapshot) {
+            screenshotEvents.push(event);
         };
     });
 
