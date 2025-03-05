@@ -1,7 +1,7 @@
 import { record as rrwebRecord } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { UAParser } from 'ua-parser-js';
-import heatmapStill from './heatmapStill';
+// import heatmapStill from './heatmapStill';
 
 const MAX_EVENTS = 500;
 
@@ -55,6 +55,8 @@ export interface RetryOptions {
 
 export class RecordSdk {
   private events: any[] = [];
+  private eventIndex = 0;
+  private lastShotedId = 0; // Last screenshot event index
   private readonly appId: string;
   private readonly tenantId: string;
   private readonly sessionId: string;
@@ -165,6 +167,8 @@ export class RecordSdk {
       if (this.events.length >= MAX_EVENTS) {
         this.events.shift(); // remove the oldest event
       }
+
+      event['eventIndex'] = ++this.eventIndex;
       this.events.push(event);
     };
 
@@ -178,12 +182,23 @@ export class RecordSdk {
       // Save the events 
       this.save({ tags })
 
+      // Automatically save the screenshot
+      // When there has some events
+      if (this.events.length) {
+        const lastIndex = this.events[this.events.length - 1].eventIndex;
+        if (this.lastShotedId + 50 < lastIndex) {
+          rrwebRecord.takeFullSnapshot();
+          this.lastShotedId = lastIndex;
+        }
+      }
+
+      console.log('events', this.events);
       // Save heatmap data
-      // Not nessary, allow to fail silently
-      const sysInfo = await this.getSystemInfo();
-      const getHeatmapData = heatmapStill(sysInfo, this.events);
-      console.log('getHeatmapData', getHeatmapData);
-      // TODO: send heatmap data to backend
+      // Not nessary, logic move to backend
+      // const sysInfo = await this.getSystemInfo();
+      // const getHeatmapData = heatmapStill(sysInfo, this.events);
+      // console.log('getHeatmapData', getHeatmapData);
+
     }, this.interval);
 
     return {
