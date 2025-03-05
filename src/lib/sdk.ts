@@ -192,7 +192,8 @@ export class RecordSdk {
         }
       }
 
-      console.log('events', this.events);
+      // console.log('events', this.events);
+      
       // Save heatmap data
       // Not nessary, logic move to backend
       // const sysInfo = await this.getSystemInfo();
