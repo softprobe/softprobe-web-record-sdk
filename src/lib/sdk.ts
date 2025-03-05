@@ -63,7 +63,6 @@ export class RecordSdk {
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
   private systemInfo: SystemInfo | null = null;
-  private hasNewEvent: boolean = true;
   private visitorId: string;
   private readonly COOKIE_NAME = '_sp_vid';
   private readonly COOKIE_DOMAIN: string;
