@@ -1,6 +1,6 @@
 {
   "name": "@softprobe/softprobe-web-record-sdk",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "type": "module",
   "main": "dist/softprobe-web-record-sdk.umd.js",
   "module": "dist/softprobe-web-record-sdk.es.js",

@@ -196,6 +196,7 @@ export class RecordSdk {
       // When there has some events
       if (this.events.length) {
         const lastIndex = this.events[this.events.length - 1].eventIndex;
+
         if (this.lastShotedId + 50 < lastIndex) {
           rrwebRecord.takeFullSnapshot();
           this.lastShotedId = lastIndex;
@@ -237,7 +238,7 @@ export class RecordSdk {
 
         return compressedEvent;
       } catch (e) {
-        console.error('Failed to compress FullSnapshot event:', e);
+        console.error('Failed to compress the FullSnapshot event:', e);
       }
     }
 
