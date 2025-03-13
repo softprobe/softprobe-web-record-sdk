@@ -1,4 +1,5 @@
-import { record as rrwebRecord } from 'rrweb';
+import { EventType, eventWithTime } from '@rrweb/types';
+import { record as rrwebRecord, pack } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { UAParser } from 'ua-parser-js';
 // import heatmapStill from './heatmapStill';
@@ -29,6 +30,11 @@ export type Tags = {
   email?: string;
   phoneNo?: string;
   ext?: Record<string, string>;
+};
+
+type CompressedEvent = eventWithTime & { 
+  data: string; 
+  isCompressed: boolean 
 };
 
 export interface ManualRecordSdkOptions extends recordOptions<any> {
@@ -169,6 +175,10 @@ export class RecordSdk {
       }
 
       event['eventIndex'] = ++this.eventIndex;
+
+      // Compress the event
+      event = this.compressEvent(event);
+
       this.events.push(event);
     };
 
@@ -193,7 +203,7 @@ export class RecordSdk {
       }
 
       // console.log('events', this.events);
-      
+
       // Save heatmap data
       // Not nessary, logic move to backend
       // const sysInfo = await this.getSystemInfo();
@@ -209,6 +219,29 @@ export class RecordSdk {
         this.save({ tags }); // Final save when stopping
       }
     };
+  }
+
+  public compressEvent(event: eventWithTime) {
+
+    if (event.type === EventType.FullSnapshot) {
+      try {
+        // @ts-ignore
+        const compressedData = pack(event.data);
+        // @ts-ignore
+        const compressedEvent: CompressedEvent = {
+          type: event.type,
+          data: compressedData,
+          timestamp: event.timestamp,
+          isCompressed: true
+        }
+
+        return compressedEvent;
+      } catch (e) {
+        console.error('Failed to compress FullSnapshot event:', e);
+      }
+    }
+
+    return event;
   }
 
   public setTags(tags: Tags, override = false) {
