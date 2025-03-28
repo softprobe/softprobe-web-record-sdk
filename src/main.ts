@@ -24,6 +24,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
     </a>
     <h1>Vite + TypeScript</h1>
+    <a href="/downlload">
+      <h1>Download</h1>
+    </a>
     <div class="card">
       <button id="counter" type="button"></button>
     </div>

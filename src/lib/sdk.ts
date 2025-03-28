@@ -32,9 +32,9 @@ export type Tags = {
   ext?: Record<string, string>;
 };
 
-type CompressedEvent = eventWithTime & { 
-  data: string; 
-  isCompressed: boolean 
+type CompressedEvent = eventWithTime & {
+  data: string;
+  isCompressed: boolean
 };
 
 export interface ManualRecordSdkOptions extends recordOptions<any> {
@@ -273,6 +273,12 @@ export class RecordSdk {
       '_sp_vid': this.visitorId
     };
 
+    // 部分tags需要移动到基础属性了
+    const { referrer } = this.tags.ext || {};
+    if (referrer) {
+      this.systemInfo._sp_referer = referrer;
+    }
+
     return this.systemInfo;
   }
 
@@ -304,15 +310,7 @@ export class RecordSdk {
         },
       });
 
-      const fetchRes = await fetch(this.serverUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body,
-        redirect: 'follow',
-        // credentials: 'include' // Include cookies in cross-origin requests
-      });
+      const fetchRes = await this.sendData(body);
 
       if (!fetchRes.ok) {
         throw new Error(`HTTP error! Status Code: ${fetchRes.status}. Details: ${await fetchRes.text()}`);
@@ -325,6 +323,18 @@ export class RecordSdk {
     } finally {
       (this.save as any).isSaving = false;
     }
+  }
+
+  private async sendData(body: any): Promise<any> {
+    return fetch(this.serverUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+      redirect: 'follow',
+      // credentials: 'include' // Include cookies in cross-origin requests
+    });
   }
 
   private uuid() {
