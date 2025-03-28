@@ -4,7 +4,7 @@
 git pull --tags
 
 # Fetch the most recent tag
-latest_tag=$(git tag --sort=-creatordate | head -n 1)
+latest_tag=$(git tag --sort=-v:refname | head -n 1)
 
 # Extract the major, minor, and patch versions
 major=$(echo $latest_tag | cut -d. -f1 | tr -d 'v')

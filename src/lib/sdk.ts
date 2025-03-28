@@ -274,9 +274,9 @@ export class RecordSdk {
     };
 
     // 部分tags需要移动到基础属性了
-    const { referrer } = this.tags.ext || {};
-    if (referrer) {
-      this.systemInfo._sp_referer = referrer;
+    const { referer } = this.tags.ext || {};
+    if (referer) {
+      this.systemInfo._sp_referer = referer;
     }
 
     return this.systemInfo;
