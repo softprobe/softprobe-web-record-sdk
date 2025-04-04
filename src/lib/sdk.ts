@@ -276,12 +276,6 @@ export class RecordSdk {
       '_sp_vid': this.visitorId
     };
 
-    // 部分tags需要移动到基础属性了
-    const { referer } = this.tags.ext || {};
-    if (referer) {
-      this.systemInfo._sp_referer = referer;
-    }
-
     return this.systemInfo;
   }
 
