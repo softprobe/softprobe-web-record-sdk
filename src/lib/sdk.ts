@@ -29,7 +29,6 @@ export type Tags = {
   clientId?: string;
   email?: string;
   phoneNo?: string;
-  ext?: Record<string, string>;
 };
 
 type CompressedEvent = eventWithTime & {
@@ -48,6 +47,7 @@ export interface RecordSdkOptions extends ManualRecordSdkOptions {
   serverUrl?: string; // The URL of the server
   interval?: number; // The interval of the recording
   manual?: boolean; // Whether to manually start the recording
+  replacers?: Record<string, string>; // Custom replacers for system info
 }
 
 export interface RetryOptions {
@@ -70,6 +70,7 @@ export class RecordSdk {
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
   private tags: Tags;
+  private replacers: Record<string, string>;
   private systemInfo: SystemInfo | null = null;
   private visitorId: string;
   private readonly COOKIE_NAME = '_sp_vid';
@@ -84,6 +85,7 @@ export class RecordSdk {
       interval = 5000,
       manual = false,
       tags = {},
+      replacers = {},
       ...recordOptions
     } = options;
 
@@ -102,6 +104,7 @@ export class RecordSdk {
       : serverUrl;
     this.interval = Math.max(interval, 5000);
     this.tags = tags;
+    this.replacers = replacers;
     this.recordOptions = recordOptions;
 
     // Determine cookie domain based on serverUrl
@@ -294,21 +297,34 @@ export class RecordSdk {
         this.systemInfo = await this.getSystemInfo();
       }
 
+      const metadata = {
+        appId: this.appId,
+        sessionId: this.sessionId,
+        tenantId: this.tenantId,
+        tags: {
+          ...this.systemInfo,
+          ...this.tags,
+          ...params?.tags,
+        } as Record<string, any>,
+      };
+
+      // Replace system info values with replacers if they exist
+      if (this.replacers) {
+        Object.entries(this.replacers).forEach(([key, value]) => {
+          if (key in metadata.tags && value) {
+            metadata.tags[key] = value;
+          }
+        });
+      }
+
+      const data = {
+        events: this.events,
+      };
+
       const body = JSON.stringify({
-        metadata: {
-          appId: this.appId,
-          sessionId: this.sessionId,
-          tenantId: this.tenantId,
-          tags: {
-            ...this.systemInfo,
-            ...this.tags,
-            ...params?.tags,
-          },
-        },
-        data: {
-          events: this.events,
-        },
-      });
+        metadata,
+        data,
+      })
 
       const fetchRes = await this.sendData(body);
 
