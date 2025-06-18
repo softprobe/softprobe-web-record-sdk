@@ -1,45 +1,36 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-    <script>
-      (function (w, d, c) {
-        var s = document.createElement('script');
-        s.src = c;
-        s.onload = function () {
-          const skd = new w.SOFTPROBE_RECORD_SDK({
-            tenantId: 'tanant123',
-            appId: 'app123',
-            interval: 10000, // interval time for sending data to server, default 5000ms
-            manual: true, // manual control record start and stop
-            // other configurations refer to rrweb record documentation  https://github.com/rrweb-io/rrweb/blob/master/guide.md#options
-            maskAllInputs: true
-          });
 
-          const { stop } = skd.record({
-            tags: {
-              ext: {
-                manual: true,
-                method: 'cdn'
-              }
-            }
-          });
-
-          // stop record after 10s
-          setTimeout(() => {
-            stop();
-            console.log('stop record');
-          }, 60000);
-        };
-        d.body.appendChild(s);
-      })(window, document, 'http://localhost:4173/softprobe-web-record-sdk.umd.js');
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + TS</title>  
+  <script>
+    (function (w, d, c) {
+      var a = d.getElementsByTagName('head')[0];
+      var s = document.createElement('script');
+      s.src = c;
+      s.onload = function () {
+        w.SoftprobeRecordSdk.init({
+          appId: 'appId123',
+          tenantId: 'tenant123',
+          tags: {
+            userId: 'userId123',
+            clientId: 'clientId1234567890',
+            email: 'test@test.com',
+            phoneNo: '1234567890',
+          }
+        });
+      }
+      a.appendChild(s);
+    })(window, document, 'http://localhost:4173/softprobe-web-record-sdk.umd.js', 'SoftprobeRecordSdk', 'init');
     </script>
-  </body>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

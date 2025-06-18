@@ -2,6 +2,7 @@ import { EventType, eventWithTime } from '@rrweb/types';
 import { record as rrwebRecord, pack } from 'rrweb';
 import { recordOptions } from 'rrweb/typings/types';
 import { UAParser } from 'ua-parser-js';
+import { initializeHttpInterceptor } from './httpIntercepter';
 // import heatmapStill from './heatmapStill';
 
 const MAX_EVENTS = 500;
@@ -65,7 +66,7 @@ export class RecordSdk {
   private lastShotedId = 0; // Last screenshot event index
   private readonly appId: string;
   private readonly tenantId: string;
-  private readonly sessionId: string;
+  public readonly sessionId: string;
   private readonly serverUrl: string;
   private readonly interval: number;
   private readonly recordOptions: recordOptions<any>;
@@ -355,13 +356,15 @@ export class RecordSdk {
       ).toString(16)
     );
   }
+
+  static init(options: RecordSdkOptions) {
+    const sdk = new RecordSdk(options);
+    initializeHttpInterceptor(sdk.sessionId);
+    return sdk;
+  }
 }
 
-// a helper function to initialize the sdk and start recording
-export default function initSoftprobe(options: RecordSdkOptions) {
-  return new RecordSdk(options);
+// Set the RecordSdk as a global variable SoftprobeRecordSdk for UMD/CDN builds
+if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+  (window as any).SoftprobeRecordSdk = RecordSdk;
 }
-
-// Export for browser global usage
-(window as any).RecordSdk = RecordSdk;
-(window as any).initSoftprobe = initSoftprobe;

@@ -24,7 +24,7 @@
     "dev": "vite",
     "build": "vite build && tsc  --build tsconfig.sdk.json",
     "build:demo": "vite build --mode=demo && tsc",
-    "build:demo-cdn": "npm run build && npm run build:demo && node copy-file.js",
+    "build:demo-cdn": "vite build --mode=cdn && tsc && node copy-file.js",
     "preview": "vite preview --mode=demo",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },

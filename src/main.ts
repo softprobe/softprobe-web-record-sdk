@@ -2,18 +2,20 @@ import './style.css';
 import typescriptLogo from './typescript.svg';
 import viteLogo from '/vite.svg';
 import { setupCounter } from './counter';
-import initSoftprobe from './lib/sdk';
+// import { RecordSdk } from './lib/sdk';
 
-initSoftprobe({
-  appId: 'appId123',
-  tenantId: 'tenant123',
-  tags: {
-    userId: 'userId123',
-    clientId: 'clientId1234567890',
-    email: 'test@test.com',
-    phoneNo: '1234567890',
-  }
-});
+// if (import.meta.env.MODE !== 'cdn') {
+//   RecordSdk.init({
+//     appId: 'appId123',
+//     tenantId: 'tenant123',
+//     tags: {
+//       userId: 'userId123',
+//       clientId: 'clientId1234567890',
+//       email: 'test@test.com',
+//       phoneNo: '1234567890',
+//     }
+//   });
+// }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
