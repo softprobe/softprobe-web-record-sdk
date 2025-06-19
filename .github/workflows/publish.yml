@@ -28,6 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Update version in package.json
+        run: |
+          # Extract version from git tag (remove 'v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          # Update version in package.json
+          npm version $VERSION --no-git-tag-version
+        
       - name: Build
         run: npm run build
         
