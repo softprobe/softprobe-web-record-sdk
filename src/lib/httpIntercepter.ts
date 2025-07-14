@@ -1,3 +1,4 @@
+const HEADER_X_SP_SESSION_ID = 'x-sp-session-id';
 
 /**
  * Patches XMLHttpRequest to inject a custom header.
@@ -41,7 +42,7 @@ export function patchXMLHttpRequest(sessionId: string): void {
         _body?: Document | XMLHttpRequestBodyInit | null
     ): void {
         // Inject your custom header here
-        this.setRequestHeader('_sp_session_id', sessionId);
+        this.setRequestHeader(HEADER_X_SP_SESSION_ID, sessionId);
 
         originalSend.apply(this, arguments as any); // Type assertion for arguments
     };
@@ -80,19 +81,19 @@ export function patchFetchAPI(sessionId: string): void {
 
         let headers: HeadersInit = options.headers;
 
-        // Determine the type of headers and add the '_sp_session_id'
+        // Determine the type of headers and add the session id header
         try {
             if (headers instanceof Headers) {
-                headers.set('_sp_session_id', sessionId);
+                headers.set(HEADER_X_SP_SESSION_ID, sessionId);
             } else if (Array.isArray(headers)) {
                 // If headers is an array of [key, value] pairs
-                headers.push(['_sp_session_id', sessionId]);
+                headers.push([HEADER_X_SP_SESSION_ID, sessionId]);
             } else {
                 // Assume it's a plain object or Record<string, string>
-                (headers as Record<string, string>)['_sp_session_id'] = sessionId;
+                (headers as Record<string, string>)[HEADER_X_SP_SESSION_ID] = sessionId;
             }
         } catch (error) {
-            console.error('Error setting _sp_session_id header:', error);
+            console.error('Error setting session id header:', error);
             // Continue with the request even if there's an error so that we dont block the request
         }
 
@@ -116,39 +117,3 @@ export function initializeHttpInterceptor(sessionId: string): void {
     patchFetchAPI(sessionId);
     console.log('HTTP interception initialized.');
 }
-
-// Example Usage (for demonstration, typically in your main application file or SDK entry point)
-// To run this example, ensure you have a tsconfig.json and compile it.
-// Then run the compiled JS in a browser environment.
-
-// Call the initialization function when your SDK is ready
-// initializeHttpInterceptor(); // Uncomment this line to activate the interceptor
-
-/*
-// Example: Using Fetch API (after interception is initialized)
-fetch('https://jsonplaceholder.typicode.com/todos/1')
-    .then(response => {
-        console.log('Fetch API response status:', response.status);
-        // You can inspect the request in your browser's network tab to confirm the header
-        return response.json();
-    })
-    .then(json => console.log('Fetch API data:', json))
-    .catch(error => console.error('Fetch API error:', error));
-
-// Example: Using XMLHttpRequest (after interception is initialized)
-const xhr = new XMLHttpRequest();
-xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts/1', true);
-xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) {
-        console.log('XMLHttpRequest response status:', xhr.status);
-        console.log('XMLHttpRequest data:', JSON.parse(xhr.responseText));
-    } else {
-        console.error('XMLHttpRequest error:', xhr.status, xhr.statusText);
-    }
-};
-xhr.onerror = function() {
-    console.error('XMLHttpRequest network error.');
-};
-// Sending the request will now include the 'sp-trace-id' header
-xhr.send();
-*/
